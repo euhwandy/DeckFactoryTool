@@ -1,0 +1,38 @@
+# commander 1 (2 if partner)
+
+
+#Ramp 10
+|24 ! MPS & Sol Ring Kaladesh Inventions
+
+
+#Engine/Core
+
+
+#Win cons 
+
+
+#Card Draw/Advantage 10
+
+#Utility 
+|206 ! CNS & Vedalken Orrery Conspiracy
+|14 ! MPS & Lightning Greaves Kaladesh Inventions
+
+
+#Targeted Removal 5
+
+
+#Board Wipes 5
+
+
+
+#Land 37
+
+
+
+
+
+
+
+
+
+

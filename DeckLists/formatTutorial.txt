@@ -1,0 +1,47 @@
+#this is the tutorial file
+#comments require a # as the first character
+#DON"T USE THE PLAYER PROMO CARDS FROM XMAGE! IT FREAKS OUT
+#if you want promo cards, build your list in this format. It can handle them
+#format is as below, any number of tabs is fine
+#always put the name before the !, then the set code (if specific) before &,
+#make sure both the ! and & signs are preceeded by at least one whitespace character
+#then you may put a number or comment
+#the script does not read it
+Forest		!	PGRU	 &	4
+Island		!	PGRU	 &	4
+Plains		!	PGRU	 &	4
+Swamp		!	PGRU	 &	4
+Mountain	!	PGRU	& 	4
+Aetherworks Marvel	!   4
+
+
+#UPDATE: TOKEN SUPPORT NOW AUTOMATIC, FOLLOW THE BELOW STEPS ONLY IF YOU WANT TO ADD DIFFERENT EDITIONS OF TOKENS.
+#this is done just like a normal card but with a few conditions:
+#1. you must include which set the token comes from (on Scryfall it is done by prepending a T to the setcode)
+#2. if there are duplicates within that set (such as eldrazi spawns 1-4), Prepend a | (pipe) to the collectors number and use that instead of the name, e.g. |4 for the 4th token
+#This method will obtain the card, resize it, and appropriately print it in the printsheet
+#KNOW WHAT YOU ARE ATTEMPTING TO GET
+#You are responsible for any tokens you cannot find on scryfall.com or that are not associated with the card version you picked.
+#note tokens are obtained automatically for cards that were published with them.
+Spawnsire of ulamog !
+
+#for double sided card and meld card support, please list each face of the meld cards. Purely double sided are automatic
+#Example provided Below
+Aberrant Researcher ! 4
+Gisela, The Broken Blade ! 4
+Bruna, The Fading Light ! 4
+Brisela, Voice of Nightmares ! 4
+
+#for split cards, pick the name of each half first one then the other
+#examples to follow
+fire ice ! CMD & needs set specificity 
+turn burn !
+
+#now with support for cards with border extended art!
+Demonic Tutor ! PUMA & Demonic Tutor
+Through the Breach ! PUMA & Why not?
+
+|1 ! PF19 & Lightning Bolt MagicFest 2019
+
+
+
