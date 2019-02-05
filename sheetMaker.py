@@ -182,7 +182,7 @@ def buildManifest(cardMat,deckManifest):
                                     deckManifest.extras[-1].cardName = deckManifest.extras[-1].cardData["name"]
                                     deckManifest.extras[-1].setCode = deckManifest.extras[-1].cardData["set"]
                                     deckManifest.extras[-1].cn = deckManifest.extras[-1].cardData["collector_number"]
-                                    deckManifest.extras[-1].pileNumber = 1 #one is the default for tokens/extras
+                                    deckManifest.extras[-1].pileNumber = -1 #one is the default for tokens/extras
                                     deckManifest.cardCount = deckManifest.cardCount +1
                                     logger.debug("Extra added to Manifest")
                                 #print("Extra added to Manifest")
@@ -190,13 +190,25 @@ def buildManifest(cardMat,deckManifest):
                         deckManifest.cardCount = deckManifest.cardCount +1
                         deckManifest.extras.append(cg.Card())
                         cg.copyCard(i,deckManifest.extras[-1])
-                        deckManifest.extras[-1].pileNumber = 1 #one is the default for tokens/extras
+                        deckManifest.extras[-1].pileNumber = -1 #one is the default for tokens/extras
                         logger.debug("Card back face added to manifest")
                         #deckManifest.cardCount = deckManifest.cardCount +1
         else:#we jsoning folks!
-            if(i.pileNumber == 1):#this is an extra
-                deckManifest.extras.append(cg.Card())
-                cg.copyCard(i,deckManifest.extras[-1])
+            if(i.pileNumber == -1):#this is an extra
+                duplicate = False
+                for k in deckManifest.extras:
+                    if k.cardData["id"] == i.cardData["id"]:
+                        #we found a duplicate, don't add it
+                        duplicate = True
+                        break
+                for k in deckManifest.cards:
+                    if k.cardData["id"] == i.cardData["id"]:
+                        #more duplicate finding, this way we cannot auto add something manually added
+                        duplicate = True
+                        break
+                if not duplicate:
+                    deckManifest.extras.append(cg.Card())
+                    cg.copyCard(i,deckManifest.extras[-1])
             else:
                 deckManifest.cards.append(cg.Card())
                 cg.copyCard(i,deckManifest.cards[-1])
@@ -316,7 +328,7 @@ def readInFile(listName):
             cardMat[-1].cn = i["collector_number"]
             cardMat[-1].setCode = i["set"]
             if("card_faces" in i and not "image_uris" in i):#double faced but not split card
-                if(not i["pile"] == 1):#not an extra
+                if(not i["pile"] == -1):#not an extra
                     cardMat[-1].cardName = i["card_faces"][0]["name"]
                 else:#is the back face beacause it is an extra
                     cardMat[-1].cardName = i["card_faces"][1]["name"]
