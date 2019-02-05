@@ -316,7 +316,7 @@ def readInFile(listName):
             cardMat[-1].cn = i["collector_number"]
             cardMat[-1].setCode = i["set"]
             if("card_faces" in i and not "image_uris" in i):#double faced but not split card
-                if(not i["pile"] == 1):#not an extra
+                if(not i["pile"] == -1):#not an extra
                     cardMat[-1].cardName = i["card_faces"][0]["name"]
                 else:#is the back face beacause it is an extra
                     cardMat[-1].cardName = i["card_faces"][1]["name"]
@@ -350,6 +350,7 @@ def buildSheet(listName,buildPrintFunctor):
     else:
         numSheets = int(1)
     count = 1
+    #retrieving the card images directly
     if deckManifest.printable:
         #test creation of json deck format
         for j in deckManifest.cards:
