@@ -156,7 +156,7 @@ def editDeck():
     global config
     config = df.loadConfig()
     master= tk.Tk()
-    master.minsize(700,700)
+    master.minsize(750,700)
     master.title("Deck Factory: List Editor")
     master.geometry("700x700")
     master.lift()

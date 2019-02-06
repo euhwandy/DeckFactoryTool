@@ -193,15 +193,12 @@ def main():
         loglevel = logging.ERROR
         if (logLevelParm == "DEBUG") :
             loglevel = logging.DEBUG
-        else: 
-            if (logLevelParm == "INFO") :
-                loglevel = logging.INFO
-            else:
-                if (logLevelParm == "WARNING") :
-                    loglevel = logging.WARNING
-                else:
-                    if (logLevelParm == "CRITICAL") :
-                        loglevel = logging.CRITICAL
+        elif (logLevelParm == "INFO") :
+            loglevel = logging.INFO
+        elif (logLevelParm == "WARNING") :
+            loglevel = logging.WARNING
+        elif (logLevelParm == "CRITICAL") :
+            loglevel = logging.CRITICAL
             
             
         

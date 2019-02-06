@@ -437,12 +437,12 @@ def buildSheet(listName,buildPrintFunctor):
             while ci < np.size(deckManifest.printList):
                     lci = np.mod(ci,69) #local card iterator
                     cardim=PIL.Image.open(deckManifest.printList[ci])
-                    size = 332, 500#471 #this took some tinkering to get Scryfall's to work.
+                    size = 332, 462#471 #this took some tinkering to get Scryfall's to work.
                     cardim.thumbnail(size,PIL.Image.ANTIALIAS)
                     #to determine the location of pasting.
                     coordx =332*np.mod(lci,10)
                     coordy =462*int(lci/10)
-                    #box size is 10 + 312 + 10, 10+445+10
+                    #box size is 332 , 462
                     temp.paste(cardim,(coordx,coordy))
                     #colorBorders(temp,coordx,coordy,cardim)
                     #determine if we have finished a sheet
