@@ -35,6 +35,11 @@ class Manifest:
     printList = []
     ambiguities = []
     failedCards = []
+    printSheetPaths = []
+    printSheetUrls = []
+    cardHiddenFacePath = ''
+    cardBackPath = ''
+    cardBackUrl = ''
     cardCount = 0
     printable = True
     def __init__(self):
@@ -449,11 +454,13 @@ def buildSheet(listName,buildPrintFunctor):
                     buildPrint('Card '+str(ci+1)+' of '+str(np.size(deckManifest.printList))+' complete')
                     if ci == np.size(deckManifest.printList)-1:
                         saveSheet(temp,dispName,currentSheet)
+                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.png')
                         buildPrint('Sheet '+str(currentSheet)+' of '+str(numSheets)+' complete')
                         buildPrint('Print Sheets for '+str(dispName)+' complete.')
                         break
                     elif lci == 68:
                         saveSheet(temp, dispName,currentSheet)
+                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.png')
                         temp = template.copy()
                         buildPrint('Sheet '+ str(currentSheet)+ ' of '+ str(numSheets)+ ' complete')
                         currentSheet += 1

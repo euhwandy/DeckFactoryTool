@@ -35,6 +35,7 @@ tkinter
 time
 shutil
 logging
+imgurpython
 
 Thanks!
 Ben
