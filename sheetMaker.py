@@ -18,6 +18,8 @@ import json
 #import glob
 from time import sleep
 import logging
+import imgurpython as imgur
+from imgurpython import ImgurClient
 #dlDir = 'DeckLists/'
 #psDir = 'PrintSheets/'
 config = {}#dictionary set by buildSheets via argument passed in from driver
@@ -39,8 +41,8 @@ class Manifest:
         self.printSheetPaths = []
         self.printSheetUrls = []
         self.cardHiddenFacePath = ''
-        self.cardBackPath = ''
-        self.cardBackUrl = ''
+        self.cardBackPath = 'NA'
+        self.cardBackUrl = 'https://i.imgur.com/scGWe4h.jpg' #magic back default
         self.cardCount = 0
         self.printable = True
     def convertToDict(self):
@@ -52,6 +54,8 @@ class Manifest:
         if(self.printable):
             outDict["cards"] = []
             outDict["card_count"] = self.cardCount
+            outDict["cardback_url"] = self.cardBackUrl
+            outDict['print_sheet_urls'] = self.printSheetUrls
             for i in self.cards:
                 tempBlob = i.cardData
                 tempBlob["numberOfCopies"] = i.copies
@@ -67,6 +71,20 @@ class Manifest:
             buildPrint("DeckManifest could not be converted to dictionary blob")
             outDict["errorCase"] = "NOT PRINTABLE"
         return outDict
+    
+    def uploadImages(self):
+        '''
+        uploads the print sheets to imgur and saves the urls.
+        '''
+        client = ImgurClient(df.client_id, df.client_secret)
+        
+        imIds = []
+        for i in self.printSheetPaths:
+            temp = client.upload_from_path(i)
+            imIds.append(temp['id'])
+            self.printSheetUrls.append(temp['link'])
+        
+        
         
 def stripName(deckPath):
     '''
@@ -103,7 +121,7 @@ def saveSheet(sheet,deckName,sheetNum):
     global buildPrint
     global config
     config = df.loadConfig()
-    sheet.save(config["printSheetsPath"]+config["systemSlash"]+deckName+str(sheetNum)+'.png','PNG')
+    sheet.save(config["printSheetsPath"]+config["systemSlash"]+deckName+str(sheetNum)+'.jpg')
 
 def buildManifest(cardMat,deckManifest):
     '''
@@ -427,10 +445,12 @@ def buildSheet(listName,buildPrintFunctor):
         now to assemble the print sheet
         '''
         template = PIL.Image.open(config["referenceImagesPath"]+config["systemSlash"]+'deck_template.png')
+        template = template.convert("RGB")
         temp = template.copy()
         currentSheet = 1
         ci = 0 #card iterator (for going through the set of cards)
         dispName = justName(dList)
+        
         if( np.size(deckManifest.printList) == deckManifest.cardCount):
             while ci < np.size(deckManifest.printList):
                     lci = np.mod(ci,69) #local card iterator
@@ -447,13 +467,13 @@ def buildSheet(listName,buildPrintFunctor):
                     buildPrint('Card '+str(ci+1)+' of '+str(np.size(deckManifest.printList))+' complete')
                     if ci == np.size(deckManifest.printList)-1:
                         saveSheet(temp,dispName,currentSheet)
-                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.png')
+                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
                         buildPrint('Sheet '+str(currentSheet)+' of '+str(numSheets)+' complete')
                         buildPrint('Print Sheets for '+str(dispName)+' complete.')
                         break
                     elif lci == 68:
                         saveSheet(temp, dispName,currentSheet)
-                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.png')
+                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
                         temp = template.copy()
                         buildPrint('Sheet '+ str(currentSheet)+ ' of '+ str(numSheets)+ ' complete')
                         currentSheet += 1
@@ -494,6 +514,7 @@ def buildSheet(listName,buildPrintFunctor):
     sleep(0.01)
     cg.CleanUpCardDir(config)
     sleep(0.01)
+    deckManifest.uploadImages()
     tempOut = deckManifest.convertToDict()
     del deckManifest
     del cardMat
