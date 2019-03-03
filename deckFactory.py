@@ -17,7 +17,7 @@ import sys
 import json
 import shutil
 import logging
-import deckPackager as dpack
+
 
 config = {
         "saved":False,
@@ -30,6 +30,9 @@ config = {
         "logLevel":"ERROR"
         }
 
+client_id = '46a5b17af3f323c'
+
+client_secret = '293b64d937f56991f261334f4c7e928fb258c304'
 def loadConfig():
     '''
     checks for configuration file adjacent to the executable and runs from there

@@ -18,8 +18,8 @@ import json
 #import glob
 from time import sleep
 import logging
-dlDir = 'DeckLists/'
-psDir = 'PrintSheets/'
+#dlDir = 'DeckLists/'
+#psDir = 'PrintSheets/'
 config = {}#dictionary set by buildSheets via argument passed in from driver
 def buildPrint(string):
     '''
@@ -30,24 +30,17 @@ def buildPrint(string):
 class InvalidListSelection(Exception):
     pass
 class Manifest:
-    cards = []
-    extras = []
-    printList = []
-    ambiguities = []
-    failedCards = []
-    printSheetPaths = []
-    printSheetUrls = []
-    cardHiddenFacePath = ''
-    cardBackPath = ''
-    cardBackUrl = ''
-    cardCount = 0
-    printable = True
     def __init__(self):
         self.cards = []
         self.extras = []
         self.printList = []
         self.ambiguities = []
         self.failedCards = []
+        self.printSheetPaths = []
+        self.printSheetUrls = []
+        self.cardHiddenFacePath = ''
+        self.cardBackPath = ''
+        self.cardBackUrl = ''
         self.cardCount = 0
         self.printable = True
     def convertToDict(self):

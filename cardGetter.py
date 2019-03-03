@@ -21,15 +21,16 @@ class Card:
     '''
     start using this structure as it will help with the 
     '''
-    cardName = ''
-    cn = ''
-    setCode = ''
-    ambiguous = False
-    notFindable = False
-    copies = 1
-    pileNumber = 0
-    loadedFromJson = False
-    cardData = '' #this will be populated by the json profile of the card from Scryfall
+    def __init__(self):
+        self.cardName = ''
+        self.cn = ''
+        self.setCode = ''
+        self.ambiguous = False
+        self.notFindable = False
+        self.copies = 1
+        self.pileNumber = 0
+        self.loadedFromJson = False
+        self.cardData = '' #this will be populated by the json profile of the card from Scryfall
 
 def copyCard(cardFrom,cardTo):
     '''
