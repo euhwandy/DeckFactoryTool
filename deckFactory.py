@@ -26,6 +26,7 @@ config = {
         "cardDumpPath":"",
         "printSheetsPath":"",
         "referenceImagesPath":"",
+        "TTSSavedObjectsPath":"",
         "systemSlash":'/',
         "logLevel":"ERROR"
         }
@@ -44,6 +45,7 @@ def loadConfig():
         currentStuffs = glob.glob(currentPath+"/*")
         currentPath += '/'
         config["systemSlash"] = '/'
+        
     elif sys.platform == 'win32':
         currentStuffs = glob.glob(currentPath+"\*")
         currentPath += '\\'
@@ -82,6 +84,7 @@ def loadConfig():
             if currentPath+"deck_template.png" in currentStuffs:
                 shutil.copy2(currentPath+"deck_template.png",
                              config["referenceImagesPath"]+config["systemSlash"]+"deck_template.png")
+        config['TTSSavedObjectsPath'] = config["deckListPath"]
     # default to ERROR if its not set yet
     config["logLevel"] = config.get("logLevel", "ERROR")
     return config
@@ -142,6 +145,19 @@ def editConfigWindow():
                                                title = "Select CardDump Folder")
         config["cardDumpPath"] = pathSelection
         saveConfig()
+        
+    def changeTTSSaveObjectFolder():
+        '''
+        reassigns the TTSSavedObjects folder
+        '''
+        global config
+        iDir = "C:\\"
+        if sys.platform == "linux" or sys.platform == "linux2":
+            iDir = "/home/"
+        pathSelection = filedialog.askdirectory(initialdir = iDir,
+                                               title = "Select TableTop Simulator Saved Objects Folder")
+        config["TTSSavedObjectsPath"] = pathSelection
+        saveConfig()
     def close():
         nonlocal configEditor
         configEditor.destroy()
@@ -162,18 +178,22 @@ def editConfigWindow():
                                       command = changeReferenceImagesFolder,
                                       bg='blue',fg='white',
                                       width=20,height=4)
-    referenceImagesButton.place(x=20,y=150)
+    referenceImagesButton.place(x=20,y=100)
     
     cardDumpButton = tk.Button(configEditor,text="Select CardDump Folder",
                                command = changeCardDumpFolder,
                                bg='blue',fg='white',
                                width=20,height=4)
-    cardDumpButton.place(x=200,y=150)
-    
+    cardDumpButton.place(x=200,y=100)
+    TTSSavedObjectsButton = tk.Button(configEditor,text="Select TTSSavedObjects\nFolder",
+                                      command = changeTTSSaveObjectFolder,
+                                      bg='blue',fg='white',
+                                      width=20,height=4)
+    TTSSavedObjectsButton.place(x=20,y=180)
     closeButton = tk.Button(configEditor,text="Close", command = close,
                              bg='red',fg='white',
                              width=20,height=4)
-    closeButton.place(x=110,y=250)
+    closeButton.place(x=110,y=270)
     configEditor.lift()
     configEditor.mainloop()
     
@@ -247,7 +267,7 @@ def main():
         count = 0
         for i in deckListPaths:
             logger.debug("calling buildSheet: " + i)  
-            failedCards,ambiguities,dictVersionOfDeck = sm.buildSheet(i,buildLogPrint)
+            failedCards,ambiguities,dictVersionOfDeck,TTSversionofDeck = sm.buildSheet(i,buildLogPrint)
             logger.debug("returned from buildSheet")
 
             strippedName = str(sm.stripName(i))
@@ -285,6 +305,9 @@ def main():
                     dictVersionOfDeck["deck_name"] = justName
                     json.dump(dictVersionOfDeck,file)
                 buildLogPrint("JSONIFIED version of "+justName+" saved")
+                with open(config["TTSSavedObjectsPath"]+config["systemSlash"]+justName+".json","w") as file:
+                    json.dump(TTSversionofDeck,file)
+                buildLogPrint("TTS version of deck saved")
                 
             buildLogPrint("")
         if(count > 0):

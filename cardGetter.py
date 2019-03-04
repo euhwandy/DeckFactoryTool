@@ -41,13 +41,13 @@ class Card:
         cardDict["Name"] = 'Card'
         
         if(not "card_faces" in self.cardData):
-            cardDict['Nickname'] = self.cardName
-            cardDict['Description'] = self.cardData["type_line"]+"\n\n"+self.cardData["oracle_text"]
+            cardDict['Nickname'] = self.cardData["name"]
+            cardDict['Description'] = self.cardData["type_line"]+"\n\n"+self.cardData["oracle_text"].replace('\\n','\n\n')
             if "power" in self.cardData:
                 cardDict['Description'] = cardDict['Description'] + '\n\n' + self.cardData['power']+'/'+self.cardData['toughness']
         else:#need to account for the dual faced nature of things
             cardDict['Nickname'] = self.cardData['card_faces'][self.selectedFace]['name']
-            cardDict['Description'] = self.cardData['card_faces'][self.selectedFace]["type_line"]+"\n\n"+self.cardData['card_faces'][self.selectedFace]["oracle_text"]
+            cardDict['Description'] = self.cardData['card_faces'][self.selectedFace]["type_line"]+"\n\n"+self.cardData['card_faces'][self.selectedFace]["oracle_text"].replace('\\n','\n\n')
             if "power" in self.cardData['card_faces'][self.selectedFace]:
                 cardDict['Description'] = cardDict['Description'] + '\n\n' + self.cardData['card_faces'][self.selectedFace]['power']+'/'+self.cardData['card_faces'][self.selectedFace]['toughness']
         

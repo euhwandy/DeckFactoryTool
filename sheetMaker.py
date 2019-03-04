@@ -73,28 +73,27 @@ class Manifest:
             outDict["errorCase"] = "NOT PRINTABLE"
         return outDict
     
-    def convertToTTSDict(deck):
+    def convertToTTSDict(self):
         TTSDict = {}
         TTSDict["ObjectStates"] = []
-        xPosition = 0
-        deckPile = {}
+        xPosition = 0 #eventually refactor this to account for multiple piles
         deckInfo = {}
         deckInfo["Name"] = "DeckCustom"
-        deckInfo["Transform"] = {'posX':xPosition, 'posY':0, 'posZ':0, 'rotX':0,
+        deckInfo["Transform"] = {'posX':4*xPosition, 'posY':1, 'posZ':0, 'rotX':0,
                                 'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
                                 'scaleZ':1}
         pageCount = 0
-        sheets = {}
-        for i in deck['print_sheet_urls']:
+        deckInfo["CustomDeck"] = {}
+        for i in self.printSheetUrls:
             pageCount += 1
-            sheets[str(pageCount)] = {'FaceURL':i, 'BackURL':deck["cardback_url"],
+            deckInfo["CustomDeck"][str(pageCount)] = {'FaceURL':i, 'BackURL':self.cardBackUrl,
                                        'NumWidth':10, 'NumHeight':7,
                                        'BackIsHidden':'false', 'UniqueBack':'false'}
         deckInfo["ContainedObjects"] = []
         deckInfo["DeckIDs"] = []
         cardCount = 0
         pageIndex = 1
-        for card in deck["cards"]:
+        for card in self.cards:
             if card.pileNumber == -1 :
                 break
             
@@ -108,13 +107,16 @@ class Manifest:
             for i in range(card.copies):
                 deckInfo["ContainedObjects"].append(cardDict)
                 deckInfo["DeckIDs"].append(cardNumber)
-        deckPile.append(deckInfo)
+        TTSDict["ObjectStates"].append(deckInfo)
         extrasDeckInfo = {}
+        extrasDeckInfo["Transform"] = {'posX':-4, 'posY':1, 'posZ':0, 'rotX':0,
+                                    'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
+                                    'scaleZ':1}
         extrasDeckInfo["ContainedObjects"] = []
-        for card in deck["extras"]:
+        extrasDeckInfo["DeckIDs"] = []
+        for card in self.extras:
             if card.pileNumber == 0 :
                 break
-            
             if cardCount == 70:
                 cardCount = 1
                 pageIndex += 1
@@ -125,6 +127,16 @@ class Manifest:
             for i in range(card.copies):
                 extrasDeckInfo["ContainedObjects"].append(cardDict)
                 extrasDeckInfo["DeckIDs"].append(cardNumber)
+        #quickly figure out how many pages of tokens there are
+        tokStartPage =  int(np.floor(extrasDeckInfo["ContainedObjects"][0]["CardID"]/100))
+        tokEndPage = int(np.floor(extrasDeckInfo["ContainedObjects"][-1]["CardID"]/100))
+        extrasDeckInfo["CustomDeck"]={}
+        for j in range(tokEndPage-tokStartPage+1):
+            extrasDeckInfo["CustomDeck"][str(j+tokStartPage)] = {'FaceURL':self.printSheetUrls[tokStartPage+j-1],
+                                                                  'BackURL':self.cardBackUrl,
+                                                                  'NumWidth':10, 'NumHeight':7,
+                                                                  'BackIsHidden':'false', 'UniqueBack':'false'}
+        TTSDict["ObjectStates"].append(extrasDeckInfo)
         return TTSDict 
         
     def uploadImages(self):
@@ -137,6 +149,7 @@ class Manifest:
         for i in self.printSheetPaths:
             temp = client.upload_from_path(i)
             imIds.append(temp['id'])
+            #print(temp)
             self.printSheetUrls.append(temp['link'])
         
         
@@ -406,6 +419,7 @@ def readInFile(listName):
                     cardMat[-1].cardName = i["card_faces"][0]["name"]
                 else:#is the back face beacause it is an extra
                     cardMat[-1].cardName = i["card_faces"][1]["name"]
+                    cardMat[-1].selectedFace = 1
             else:
                 cardMat[-1].cardName = i["name"]
             cardMat[-1].copies = i["numberOfCopies"]
@@ -574,7 +588,7 @@ def buildSheet(listName,buildPrintFunctor):
     sleep(0.01)
     deckManifest.uploadImages()
     tempOut = deckManifest.convertToDict()
-    TTSOut = deckManifest.convertToTTSDict(tempOut)
+    TTSOut = deckManifest.convertToTTSDict()
     del deckManifest
     del cardMat
     #build the error reporting
