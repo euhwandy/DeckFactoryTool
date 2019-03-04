@@ -30,6 +30,7 @@ class Card:
         self.copies = 1
         self.pileNumber = 0
         self.loadedFromJson = False
+        self.selectedFace = 0 #front face by default
         self.cardData = '' #this will be populated by the json profile of the card from Scryfall
         
     def convertToTTSCard(self):
@@ -38,8 +39,18 @@ class Card:
         '''
         cardDict = {}
         cardDict["Name"] = 'Card'
-        cardDict['Nickname'] = self.cardName
-        cardDict['Description'] = self.cardData["type_line"]+"\n\n"+self.cardData["oracle_text"]
+        
+        if(not "card_faces" in self.cardData):
+            cardDict['Nickname'] = self.cardName
+            cardDict['Description'] = self.cardData["type_line"]+"\n\n"+self.cardData["oracle_text"]
+            if "power" in self.cardData:
+                cardDict['Description'] = cardDict['Description'] + '\n\n' + self.cardData['power']+'/'+self.cardData['toughness']
+        else:#need to account for the dual faced nature of things
+            cardDict['Nickname'] = self.cardData['card_faces'][self.selectedFace]['name']
+            cardDict['Description'] = self.cardData['card_faces'][self.selectedFace]["type_line"]+"\n\n"+self.cardData['card_faces'][self.selectedFace]["oracle_text"]
+            if "power" in self.cardData['card_faces'][self.selectedFace]:
+                cardDict['Description'] = cardDict['Description'] + '\n\n' + self.cardData['card_faces'][self.selectedFace]['power']+'/'+self.cardData['card_faces'][self.selectedFace]['toughness']
+        
         cardDict["Transform"] = {"posX":0,"posY":0,"posZ":0,"rotX":0,"rotY":180,"rotZ":180,"scaleX":1,"scaleY":1,"scaleZ":1}
         
         return cardDict

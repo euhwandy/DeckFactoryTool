@@ -105,8 +105,8 @@ class Manifest:
             cardCount += 1
             cardDict = card.convertToTTSCard()
             cardDict["CardID"] = cardNumber
-            deckInfo["ContainedObjects"].append(cardDict)
             for i in range(card.copies):
+                deckInfo["ContainedObjects"].append(cardDict)
                 deckInfo["DeckIDs"].append(cardNumber)
         deckPile.append(deckInfo)
         extrasDeckInfo = {}
@@ -122,10 +122,9 @@ class Manifest:
             cardCount += 1
             cardDict = card.convertToTTSCard()
             cardDict["CardID"] = cardNumber
-            
-            extrasDeckInfo["ContainedObjects"].append(cardDict)
             for i in range(card.copies):
-                
+                extrasDeckInfo["ContainedObjects"].append(cardDict)
+                extrasDeckInfo["DeckIDs"].append(cardNumber)
         return TTSDict 
         
     def uploadImages(self):
@@ -262,7 +261,8 @@ def buildManifest(cardMat,deckManifest):
                         deckManifest.cardCount = deckManifest.cardCount +1
                         deckManifest.extras.append(cg.Card())
                         cg.copyCard(i,deckManifest.extras[-1])
-                        deckManifest.extras[-1].pileNumber = -1 #one is the default for tokens/extras
+                        deckManifest.extras[-1].pileNumber = -1 #negative one is the default for tokens/extras
+                        deckManifest.extras[-1].selectedFace = 1 #one is the default for the back face
                         logger.debug("Card back face added to manifest")
                         #deckManifest.cardCount = deckManifest.cardCount +1
         else:#we jsoning folks!
@@ -281,6 +281,8 @@ def buildManifest(cardMat,deckManifest):
                 if not duplicate:
                     deckManifest.extras.append(cg.Card())
                     cg.copyCard(i,deckManifest.extras[-1])
+                    if "card_faces" in i.cardData and not "image_uris" in i.cardData:
+                        deckManifest.extras[-1].selectedFace = 1 #one is the default for the back face
             else:
                 deckManifest.cards.append(cg.Card())
                 cg.copyCard(i,deckManifest.cards[-1])
