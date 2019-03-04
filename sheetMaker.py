@@ -45,6 +45,7 @@ class Manifest:
         self.cardBackUrl = 'https://i.imgur.com/scGWe4h.jpg' #magic back default
         self.cardCount = 0
         self.printable = True
+        
     def convertToDict(self):
         '''
         here we write functionality that creates a big old json blob like dictionary
@@ -72,6 +73,31 @@ class Manifest:
             outDict["errorCase"] = "NOT PRINTABLE"
         return outDict
     
+    def convertToTTSDict(deck):
+        TTSDict = {}
+        TTSDict["ObjectStates"] = []
+        xPosition = 0
+        deckPile = {}
+        deckInfo = {}
+        deckInfo["Name"] = "DeckCustom"
+        deckInfo["Transform"] = dict(posX=xPosition, posY=0, posZ=0, rotX=0, rotY=180, rotZ=180, scaleX=1, scaleY=1, scaleZ=1)
+        deckPile.append(deckInfo)
+        pageCount = 0
+        sheets = {}
+        for i in deck['print_sheet_urls']:
+            pageCount += 1
+            sheets[str(pageCount)] = dict(FaceURL=i, BackURL=deck["cardback_url"], NumWidth=10, NumHeight=7, BackIsHidden='false', UniqueBack='false')
+        cards = {}
+        cardCount = 0
+        pageIndex = 1
+        for card in deck["cards"]:
+            if card.pileNumber == -1 :
+                break
+            cardCount += 1
+            cardNumber = (pageIndex * 100) + cardCount
+        
+        return TTSDict 
+        
     def uploadImages(self):
         '''
         uploads the print sheets to imgur and saves the urls.
@@ -516,8 +542,9 @@ def buildSheet(listName,buildPrintFunctor):
     sleep(0.01)
     deckManifest.uploadImages()
     tempOut = deckManifest.convertToDict()
+    TTSOut = deckManifest.convertToTTSDict(tempOut)
     del deckManifest
     del cardMat
     #build the error reporting
-    return outFail,outAmb,tempOut
+    return outFail,outAmb,tempOut, TTSOut
 
