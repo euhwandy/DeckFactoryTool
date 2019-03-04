@@ -80,22 +80,52 @@ class Manifest:
         deckPile = {}
         deckInfo = {}
         deckInfo["Name"] = "DeckCustom"
-        deckInfo["Transform"] = dict(posX=xPosition, posY=0, posZ=0, rotX=0, rotY=180, rotZ=180, scaleX=1, scaleY=1, scaleZ=1)
-        deckPile.append(deckInfo)
+        deckInfo["Transform"] = {'posX':xPosition, 'posY':0, 'posZ':0, 'rotX':0,
+                                'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
+                                'scaleZ':1}
         pageCount = 0
         sheets = {}
         for i in deck['print_sheet_urls']:
             pageCount += 1
-            sheets[str(pageCount)] = dict(FaceURL=i, BackURL=deck["cardback_url"], NumWidth=10, NumHeight=7, BackIsHidden='false', UniqueBack='false')
-        cards = {}
+            sheets[str(pageCount)] = {'FaceURL':i, 'BackURL':deck["cardback_url"],
+                                       'NumWidth':10, 'NumHeight':7,
+                                       'BackIsHidden':'false', 'UniqueBack':'false'}
+        deckInfo["ContainedObjects"] = []
+        deckInfo["DeckIDs"] = []
         cardCount = 0
         pageIndex = 1
         for card in deck["cards"]:
             if card.pileNumber == -1 :
                 break
-            cardCount += 1
+            
+            if cardCount == 70:
+                cardCount = 1
+                pageIndex += 1
             cardNumber = (pageIndex * 100) + cardCount
-        
+            cardCount += 1
+            cardDict = card.convertToTTSCard()
+            cardDict["CardID"] = cardNumber
+            deckInfo["ContainedObjects"].append(cardDict)
+            for i in range(card.copies):
+                deckInfo["DeckIDs"].append(cardNumber)
+        deckPile.append(deckInfo)
+        extrasDeckInfo = {}
+        extrasDeckInfo["ContainedObjects"] = []
+        for card in deck["extras"]:
+            if card.pileNumber == 0 :
+                break
+            
+            if cardCount == 70:
+                cardCount = 1
+                pageIndex += 1
+            cardNumber = (pageIndex * 100) + cardCount
+            cardCount += 1
+            cardDict = card.convertToTTSCard()
+            cardDict["CardID"] = cardNumber
+            
+            extrasDeckInfo["ContainedObjects"].append(cardDict)
+            for i in range(card.copies):
+                
         return TTSDict 
         
     def uploadImages(self):

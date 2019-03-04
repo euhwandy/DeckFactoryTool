@@ -31,6 +31,18 @@ class Card:
         self.pileNumber = 0
         self.loadedFromJson = False
         self.cardData = '' #this will be populated by the json profile of the card from Scryfall
+        
+    def convertToTTSCard(self):
+        '''
+        this function takes all the appropriate information and converts it to a generic dictionary template for a card
+        '''
+        cardDict = {}
+        cardDict["Name"] = 'Card'
+        cardDict['Nickname'] = self.cardName
+        cardDict['Description'] = self.cardData["type_line"]+"\n\n"+self.cardData["oracle_text"]
+        cardDict["Transform"] = {"posX":0,"posY":0,"posZ":0,"rotX":0,"rotY":180,"rotZ":180,"scaleX":1,"scaleY":1,"scaleZ":1}
+        
+        return cardDict
 
 def copyCard(cardFrom,cardTo):
     '''
