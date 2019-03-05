@@ -18,8 +18,10 @@ import json
 #import glob
 from time import sleep
 import logging
-dlDir = 'DeckLists/'
-psDir = 'PrintSheets/'
+import imgurpython as imgur
+from imgurpython import ImgurClient
+#dlDir = 'DeckLists/'
+#psDir = 'PrintSheets/'
 config = {}#dictionary set by buildSheets via argument passed in from driver
 def buildPrint(string):
     '''
@@ -30,21 +32,20 @@ def buildPrint(string):
 class InvalidListSelection(Exception):
     pass
 class Manifest:
-    cards = []
-    extras = []
-    printList = []
-    ambiguities = []
-    failedCards = []
-    cardCount = 0
-    printable = True
     def __init__(self):
         self.cards = []
         self.extras = []
         self.printList = []
         self.ambiguities = []
         self.failedCards = []
+        self.printSheetPaths = []
+        self.printSheetUrls = []
+        self.cardHiddenFacePath = ''
+        self.cardBackPath = 'NA'
+        self.cardBackUrl = 'https://i.imgur.com/scGWe4h.jpg' #magic back default
         self.cardCount = 0
         self.printable = True
+        
     def convertToDict(self):
         '''
         here we write functionality that creates a big old json blob like dictionary
@@ -54,6 +55,8 @@ class Manifest:
         if(self.printable):
             outDict["cards"] = []
             outDict["card_count"] = self.cardCount
+            outDict["cardback_url"] = self.cardBackUrl
+            outDict['print_sheet_urls'] = self.printSheetUrls
             for i in self.cards:
                 tempBlob = i.cardData
                 tempBlob["numberOfCopies"] = i.copies
@@ -69,6 +72,93 @@ class Manifest:
             buildPrint("DeckManifest could not be converted to dictionary blob")
             outDict["errorCase"] = "NOT PRINTABLE"
         return outDict
+    
+    def convertToTTSDict(self):
+        TTSDict = {}
+        TTSDict["ObjectStates"] = []
+        xPosition = 0 #eventually refactor this to account for multiple piles
+        deckInfo = {}
+        deckInfo["Name"] = "DeckCustom"
+        deckInfo["Transform"] = {'posX':4*xPosition, 'posY':1, 'posZ':0, 'rotX':0,
+                                'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
+                                'scaleZ':1}
+        pageCount = 0
+        deckInfo["CustomDeck"] = {}
+        for i in self.printSheetUrls:
+            pageCount += 1
+            deckInfo["CustomDeck"][str(pageCount)] = {'FaceURL':i, 'BackURL':self.cardBackUrl,
+                                       'NumWidth':10, 'NumHeight':7,
+                                       'BackIsHidden':'false', 'UniqueBack':'false'}
+        deckInfo["ContainedObjects"] = []
+        deckInfo["DeckIDs"] = []
+        cardCount = 0
+        pageIndex = 1
+        for card in self.cards:
+            if card.pileNumber == -1 :
+                break
+            
+            if cardCount == 70:
+                cardCount = 1
+                pageIndex += 1
+            cardNumber = (pageIndex * 100) + cardCount
+            cardCount += 1
+            cardDict = card.convertToTTSCard()
+            cardDict["CardID"] = cardNumber
+            for i in range(card.copies):
+                deckInfo["ContainedObjects"].append(cardDict)
+                deckInfo["DeckIDs"].append(cardNumber)
+        TTSDict["ObjectStates"].append(deckInfo)
+        extrasDeckInfo = {}
+        extrasDeckInfo["Transform"] = {'posX':-4, 'posY':1, 'posZ':0, 'rotX':0,
+                                    'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
+                                    'scaleZ':1}
+        extrasDeckInfo["Name"] = "DeckCustom"
+        extrasDeckInfo["ContainedObjects"] = []
+        extrasDeckInfo["DeckIDs"] = []
+        for card in self.extras:
+            if card.pileNumber == 0 :
+                break
+            if cardCount == 70:
+                cardCount = 1
+                pageIndex += 1
+            cardNumber = (pageIndex * 100) + cardCount
+            cardCount += 1
+            cardDict = card.convertToTTSCard()
+            cardDict["CardID"] = cardNumber
+            for i in range(card.copies):
+                extrasDeckInfo["ContainedObjects"].append(cardDict)
+                extrasDeckInfo["DeckIDs"].append(cardNumber)
+        #quickly figure out how many pages of tokens there are
+        tokStartPage =  int(np.floor(extrasDeckInfo["ContainedObjects"][0]["CardID"]/100))
+        tokEndPage = int(np.floor(extrasDeckInfo["ContainedObjects"][-1]["CardID"]/100))
+        extrasDeckInfo["CustomDeck"]={}
+        for j in range(tokEndPage-tokStartPage+1):
+            extrasDeckInfo["CustomDeck"][str(j+tokStartPage)] = {'FaceURL':self.printSheetUrls[tokStartPage+j-1],
+                                                                  'BackURL':self.cardBackUrl,
+                                                                  'NumWidth':10, 'NumHeight':7,
+                                                                  'BackIsHidden':'false', 'UniqueBack':'false'}
+        TTSDict["ObjectStates"].append(extrasDeckInfo)
+        return TTSDict 
+        
+    def uploadImages(self):
+        '''
+        uploads the print sheets to imgur and saves the urls.
+        '''
+        global config
+        df.loadConfig()
+        client = ImgurClient(df.client_id, df.client_secret)
+        client.set_user_auth(config["imgurAccessToken"],config["imgurRefreshToken"])
+        imIds = []
+        for i in self.printSheetPaths:
+            temp = client.upload_from_path(i,anon=False)
+            imIds.append(temp['id'])
+            #print(temp)
+            print(temp["link"])
+            self.printSheetUrls.append(temp['link'])
+        
+        print(self.printSheetUrls)
+        
+        
         
 def stripName(deckPath):
     '''
@@ -105,7 +195,7 @@ def saveSheet(sheet,deckName,sheetNum):
     global buildPrint
     global config
     config = df.loadConfig()
-    sheet.save(config["printSheetsPath"]+config["systemSlash"]+deckName+str(sheetNum)+'.png','PNG')
+    sheet.save(config["printSheetsPath"]+config["systemSlash"]+deckName+str(sheetNum)+'.jpg')
 
 def buildManifest(cardMat,deckManifest):
     '''
@@ -190,7 +280,8 @@ def buildManifest(cardMat,deckManifest):
                         deckManifest.cardCount = deckManifest.cardCount +1
                         deckManifest.extras.append(cg.Card())
                         cg.copyCard(i,deckManifest.extras[-1])
-                        deckManifest.extras[-1].pileNumber = -1 #one is the default for tokens/extras
+                        deckManifest.extras[-1].pileNumber = -1 #negative one is the default for tokens/extras
+                        deckManifest.extras[-1].selectedFace = 1 #one is the default for the back face
                         logger.debug("Card back face added to manifest")
                         #deckManifest.cardCount = deckManifest.cardCount +1
         else:#we jsoning folks!
@@ -209,6 +300,8 @@ def buildManifest(cardMat,deckManifest):
                 if not duplicate:
                     deckManifest.extras.append(cg.Card())
                     cg.copyCard(i,deckManifest.extras[-1])
+                    if "card_faces" in i.cardData and not "image_uris" in i.cardData:
+                        deckManifest.extras[-1].selectedFace = 1 #one is the default for the back face
             else:
                 deckManifest.cards.append(cg.Card())
                 cg.copyCard(i,deckManifest.cards[-1])
@@ -332,6 +425,7 @@ def readInFile(listName):
                     cardMat[-1].cardName = i["card_faces"][0]["name"]
                 else:#is the back face beacause it is an extra
                     cardMat[-1].cardName = i["card_faces"][1]["name"]
+                    cardMat[-1].selectedFace = 1
             else:
                 cardMat[-1].cardName = i["name"]
             cardMat[-1].copies = i["numberOfCopies"]
@@ -429,31 +523,41 @@ def buildSheet(listName,buildPrintFunctor):
         now to assemble the print sheet
         '''
         template = PIL.Image.open(config["referenceImagesPath"]+config["systemSlash"]+'deck_template.png')
+        template = template.convert("RGB")
         temp = template.copy()
         currentSheet = 1
         ci = 0 #card iterator (for going through the set of cards)
         dispName = justName(dList)
+        #sheetSize = 4096,3390
+        #size = 409,570
         if( np.size(deckManifest.printList) == deckManifest.cardCount):
             while ci < np.size(deckManifest.printList):
                     lci = np.mod(ci,69) #local card iterator
                     cardim=PIL.Image.open(deckManifest.printList[ci])
                     size = 332, 462#471 #this took some tinkering to get Scryfall's to work.
+                    
                     cardim.thumbnail(size,PIL.Image.ANTIALIAS)
                     #to determine the location of pasting.
                     coordx =332*np.mod(lci,10)
                     coordy =462*int(lci/10)
+                    #coordx =410*np.mod(lci,10)
+                    #coordy =570*int(lci/10)
                     #box size is 332 , 462
                     temp.paste(cardim,(coordx,coordy))
-                    #colorBorders(temp,coordx,coordy,cardim)
+                    
                     #determine if we have finished a sheet
                     buildPrint('Card '+str(ci+1)+' of '+str(np.size(deckManifest.printList))+' complete')
                     if ci == np.size(deckManifest.printList)-1:
+                        #temp.resize(sheetSize,PIL.Image.LANCZOS)
                         saveSheet(temp,dispName,currentSheet)
+                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
                         buildPrint('Sheet '+str(currentSheet)+' of '+str(numSheets)+' complete')
                         buildPrint('Print Sheets for '+str(dispName)+' complete.')
                         break
                     elif lci == 68:
+                        #temp.resize(sheetSize,PIL.Image.LANCZOS)
                         saveSheet(temp, dispName,currentSheet)
+                        deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
                         temp = template.copy()
                         buildPrint('Sheet '+ str(currentSheet)+ ' of '+ str(numSheets)+ ' complete')
                         currentSheet += 1
@@ -494,9 +598,11 @@ def buildSheet(listName,buildPrintFunctor):
     sleep(0.01)
     cg.CleanUpCardDir(config)
     sleep(0.01)
+    deckManifest.uploadImages()
     tempOut = deckManifest.convertToDict()
+    TTSOut = deckManifest.convertToTTSDict()
     del deckManifest
     del cardMat
     #build the error reporting
-    return outFail,outAmb,tempOut
+    return outFail,outAmb,tempOut, TTSOut
 

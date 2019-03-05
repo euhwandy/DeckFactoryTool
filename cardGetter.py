@@ -21,15 +21,39 @@ class Card:
     '''
     start using this structure as it will help with the 
     '''
-    cardName = ''
-    cn = ''
-    setCode = ''
-    ambiguous = False
-    notFindable = False
-    copies = 1
-    pileNumber = 0
-    loadedFromJson = False
-    cardData = '' #this will be populated by the json profile of the card from Scryfall
+    def __init__(self):
+        self.cardName = ''
+        self.cn = ''
+        self.setCode = ''
+        self.ambiguous = False
+        self.notFindable = False
+        self.copies = 1
+        self.pileNumber = 0
+        self.loadedFromJson = False
+        self.selectedFace = 0 #front face by default
+        self.cardData = '' #this will be populated by the json profile of the card from Scryfall
+        
+    def convertToTTSCard(self):
+        '''
+        this function takes all the appropriate information and converts it to a generic dictionary template for a card
+        '''
+        cardDict = {}
+        cardDict["Name"] = 'Card'
+        
+        if(not "card_faces" in self.cardData):
+            cardDict['Nickname'] = self.cardData["name"]
+            cardDict['Description'] = self.cardData["type_line"]+"\n\n"+self.cardData["oracle_text"].replace('\\n','\n\n')
+            if "power" in self.cardData:
+                cardDict['Description'] = cardDict['Description'] + '\n\n' + self.cardData['power']+'/'+self.cardData['toughness']
+        else:#need to account for the dual faced nature of things
+            cardDict['Nickname'] = self.cardData['card_faces'][self.selectedFace]['name']
+            cardDict['Description'] = self.cardData['card_faces'][self.selectedFace]["type_line"]+"\n\n"+self.cardData['card_faces'][self.selectedFace]["oracle_text"].replace('\\n','\n\n')
+            if "power" in self.cardData['card_faces'][self.selectedFace]:
+                cardDict['Description'] = cardDict['Description'] + '\n\n' + self.cardData['card_faces'][self.selectedFace]['power']+'/'+self.cardData['card_faces'][self.selectedFace]['toughness']
+        
+        cardDict["Transform"] = {"posX":0,"posY":0,"posZ":0,"rotX":0,"rotY":180,"rotZ":180,"scaleX":1,"scaleY":1,"scaleZ":1}
+        
+        return cardDict
 
 def copyCard(cardFrom,cardTo):
     '''

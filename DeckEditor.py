@@ -147,12 +147,33 @@ def searchCardDialogTree(searchManifest):
         #at the end of this process, clean up your messy card options
     return returnString
 
+def cardBackDialogTree():
+    '''
+    this function allows the user to navigate through the tree of things
+    and select an image to use as a cardback
+    '''
+    global config
+    config = df.loadConfig()
+    
+    outPath = filedialog.askopenfilename(initialdir=config["referenceImagesPath"],title="Select an image for your Card Backs" )
+    return outPath
 
+def cardHiddenFaceDialogTree():
+    '''
+    this function allows the user to navigate through the tree of things
+    and select an image to use as a cardback
+    '''
+    global config
+    config = df.loadConfig()
+    
+    outPath = filedialog.askopenfilename(initialdir=config["referenceImagesPath"],title="Select an image for your Card Hidden Faces" )
+    return outPath
 
 def editDeck():
     '''
     primary deck editing window
     '''
+    print(cardBackDialogTree())
     global config
     config = df.loadConfig()
     master= tk.Tk()
