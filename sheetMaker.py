@@ -112,6 +112,7 @@ class Manifest:
         extrasDeckInfo["Transform"] = {'posX':-4, 'posY':1, 'posZ':0, 'rotX':0,
                                     'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
                                     'scaleZ':1}
+        extrasDeckInfo["Name"] = "DeckCustom"
         extrasDeckInfo["ContainedObjects"] = []
         extrasDeckInfo["DeckIDs"] = []
         for card in self.extras:
@@ -143,14 +144,19 @@ class Manifest:
         '''
         uploads the print sheets to imgur and saves the urls.
         '''
+        global config
+        df.loadConfig()
         client = ImgurClient(df.client_id, df.client_secret)
-        
+        client.set_user_auth(config["imgurAccessToken"],config["imgurRefreshToken"])
         imIds = []
         for i in self.printSheetPaths:
-            temp = client.upload_from_path(i)
+            temp = client.upload_from_path(i,anon=False)
             imIds.append(temp['id'])
             #print(temp)
+            print(temp["link"])
             self.printSheetUrls.append(temp['link'])
+        
+        print(self.printSheetUrls)
         
         
         
@@ -522,28 +528,34 @@ def buildSheet(listName,buildPrintFunctor):
         currentSheet = 1
         ci = 0 #card iterator (for going through the set of cards)
         dispName = justName(dList)
-        
+        #sheetSize = 4096,3390
+        #size = 409,570
         if( np.size(deckManifest.printList) == deckManifest.cardCount):
             while ci < np.size(deckManifest.printList):
                     lci = np.mod(ci,69) #local card iterator
                     cardim=PIL.Image.open(deckManifest.printList[ci])
                     size = 332, 462#471 #this took some tinkering to get Scryfall's to work.
+                    
                     cardim.thumbnail(size,PIL.Image.ANTIALIAS)
                     #to determine the location of pasting.
                     coordx =332*np.mod(lci,10)
                     coordy =462*int(lci/10)
+                    #coordx =410*np.mod(lci,10)
+                    #coordy =570*int(lci/10)
                     #box size is 332 , 462
                     temp.paste(cardim,(coordx,coordy))
-                    #colorBorders(temp,coordx,coordy,cardim)
+                    
                     #determine if we have finished a sheet
                     buildPrint('Card '+str(ci+1)+' of '+str(np.size(deckManifest.printList))+' complete')
                     if ci == np.size(deckManifest.printList)-1:
+                        #temp.resize(sheetSize,PIL.Image.LANCZOS)
                         saveSheet(temp,dispName,currentSheet)
                         deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
                         buildPrint('Sheet '+str(currentSheet)+' of '+str(numSheets)+' complete')
                         buildPrint('Print Sheets for '+str(dispName)+' complete.')
                         break
                     elif lci == 68:
+                        #temp.resize(sheetSize,PIL.Image.LANCZOS)
                         saveSheet(temp, dispName,currentSheet)
                         deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
                         temp = template.copy()

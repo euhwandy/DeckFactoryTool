@@ -17,7 +17,8 @@ import sys
 import json
 import shutil
 import logging
-
+import datetime
+from imgurpython import ImgurClient
 
 config = {
         "saved":False,
@@ -28,7 +29,9 @@ config = {
         "referenceImagesPath":"",
         "TTSSavedObjectsPath":"",
         "systemSlash":'/',
-        "logLevel":"ERROR"
+        "logLevel":"ERROR",
+        "imgurAccessToken":"",
+        "imgurRefreshToken":""
         }
 
 client_id = '46a5b17af3f323c'
@@ -87,8 +90,61 @@ def loadConfig():
         config['TTSSavedObjectsPath'] = config["deckListPath"]
     # default to ERROR if its not set yet
     config["logLevel"] = config.get("logLevel", "ERROR")
+    if(config["imgurAccessToken"] == ""):
+        imgurAuthProcess()
     return config
-
+def imgurAuthProcess():
+    '''
+    in the case of an expired/or unretreived set of tokens, prompt the user to set this part up.
+    '''
+    global config
+    
+    client = ImgurClient(client_id,client_secret)
+    
+    authorization_url = client.get_auth_url('pin')
+    
+    authWindow = tk.Tk();
+    authWindow.title("Imgur Tokens setup")
+    authWindow.minsize(width=700,height=150)
+    authWindow.geometry("400x300")
+    authWindow.lift()
+    
+    
+    textbits = tk.Label(master=authWindow,text="You appear to have not registered your imgur account with the Deckfactory.\nPlease go to the below url\nand type the pin given in the box below, then hit OK.")
+    textbits.place(x=20,y=80)
+    pinEnter = tk.ttk.Entry(master = authWindow,width=50)
+    pinEnter.place(x=20,y=220)
+    urlOut = tk.Text(master=authWindow,  height = 1, borderwidth=0)
+    urlOut.insert(1.0,authorization_url)
+    urlOut.place(x=20,y=200)
+    urlOut.configure(state="disabled")
+    
+    
+    def confirmPinEntry(event):
+        confirmPin()
+    def confirmPin():
+        nonlocal pinEnter
+        global config
+        pin = pinEnter.get()
+        credentials = client.authorize(pin,'pin')
+        config["imgurAccessToken"] = credentials["access_token"]
+        config["imgurRefreshToken"] = credentials["refresh_token"]
+        killAuthWindow()
+    def killAuthWindow():
+        authWindow.destroy()
+        authWindow.quit()
+    pinEnter.bind('<Return>',confirmPinEntry)
+    
+    cancelButton = tk.Button(authWindow,text='Cancel', command = killAuthWindow,
+                           width=13,height=2)
+    cancelButton.place(x=250,y=250)
+    
+    confirmButton = tk.Button(authWindow,text='Confirm', command = confirmPin,
+                           bg='green',fg='white',
+                           width=13,height=2)
+    confirmButton.place(x=20,y=250)
+    authWindow.mainloop()
+    
 def saveConfig():
     '''
     should save the current config as a json
@@ -156,7 +212,7 @@ def editConfigWindow():
             iDir = "/home/"
         pathSelection = filedialog.askdirectory(initialdir = iDir,
                                                title = "Select TableTop Simulator Saved Objects Folder")
-        config["TTSSavedObjectsPath"] = pathSelection
+        config["TTSSavedObjectsPath"] = pathSelection.replace('/',config["systemSlash"])
         saveConfig()
     def close():
         nonlocal configEditor
@@ -308,7 +364,7 @@ def main():
                 with open(config["TTSSavedObjectsPath"]+config["systemSlash"]+justName+".json","w") as file:
                     json.dump(TTSversionofDeck,file)
                 buildLogPrint("TTS version of deck saved")
-                
+                buildLogPrint(config["TTSSavedObjectsPath"]+config["systemSlash"]+justName+".json")
             buildLogPrint("")
         if(count > 0):
             buildLogPrint("Print Sheets have been generated!\nThey can be found in " + config["printSheetsPath"]+"\n")
