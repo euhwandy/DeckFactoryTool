@@ -6,7 +6,6 @@ deckEditor.py - building a deck list editing interface
 @author: Benjamin
 """
 
-#import json
 import cardGetter as cg
 import sheetMaker as sm
 import tkinter as tk

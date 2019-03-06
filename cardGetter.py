@@ -8,11 +8,10 @@ cardGetter.py - contains functions used in getting card images and storing them
 
 import urllib as ul
 from urllib import request
-#import requests as req
-#import re
 import os
 import glob
 import json
+
 config = {}# this is set by 
 class AmbiguityError(Exception):
     pass
