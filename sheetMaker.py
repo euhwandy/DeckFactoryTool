@@ -14,11 +14,11 @@ from cardGetter import Card
 import numpy as np
 import deckFactory as df
 import json
+import csv
 #import sys
 #import glob
 from time import sleep
 import logging
-import imgurpython as imgur
 from imgurpython import ImgurClient
 #dlDir = 'DeckLists/'
 #psDir = 'PrintSheets/'
@@ -335,6 +335,8 @@ def readInFile(listName):
         fileType = "Xmage"
     elif(dList[-5:]=='.json'):
         fileType = "Json"
+    elif(dList[-4:]=='.csv'):
+        fileType = "CSV"
     if not fileType == "Json":
         with open(dList) as file:
             for line in file:
@@ -372,6 +374,19 @@ def readInFile(listName):
                         cName = re.search('\]((\s)*(\S)*)*',line).group()[1:-1]
                         cardMat[-1].cardName = cName
                         cardMat[-1].cn = cNum
+                elif fileType == "CSV":
+                    #write in csv data read in.
+                    reader = csv.reader(file,delimiter="|")
+                    
+                    for cNum, setName,cardName,copies,pilenumber,uri in reader:
+                        cardMat.append(cg.Card())
+                        cardMat[-1].cn=cNum
+                        cardMat[-1].setCode = setName
+                        cardMat[-1].cardName = cardName
+                        cardMat[-1].copies = copies
+                        cardMat[-1].pileNumber = pilenumber
+                        cardMat[-1].cardData = cg.getCardManifest(uri)
+                        
                 else:#text file type
                     #filter out comments and empty lines
                     if not (line[0] == '#' or line.replace(" ","")=='\n'):
