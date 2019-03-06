@@ -14,14 +14,10 @@ from cardGetter import Card
 import numpy as np
 import deckFactory as df
 import json
-import csv
-#import sys
-#import glob
 from time import sleep
 import logging
 from imgurpython import ImgurClient
-#dlDir = 'DeckLists/'
-#psDir = 'PrintSheets/'
+
 config = {}#dictionary set by buildSheets via argument passed in from driver
 def buildPrint(string):
     '''
