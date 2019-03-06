@@ -24,6 +24,7 @@ def generateListEntry(selectedManifest):
     '''
     given a card's json, generate and return the string list entry for it
     '''
+    '''
     out = ''
     if(cg.RepresentsInt(selectedManifest["collector_number"]) or cg.RepresentsInt(selectedManifest["collector_number"][:-1]) ):
         out = ("|"+str(selectedManifest["collector_number"])+" ! "+
@@ -35,8 +36,17 @@ def generateListEntry(selectedManifest):
                         selectedManifest["set"].upper()+ " & " +
                         selectedManifest["name"] + " " + selectedManifest["set_name"]+
                         " #"+selectedManifest['collector_number']+"\n")
+                    
     return out
-
+    '''
+    
+    out = str(selectedManifest["collector_number"]) + " | "
+    out += selectedManifest["set"].upper() + " | "
+    out += selectedManifest["name"] + " | "
+    out += selectedManifest["copies"] + " | " 
+    out += selectedManifest["pileNumber"]+" | "
+    out += selectedManifest["uri"]+"\n"
+    return out
 def searchCardDialogTree(searchManifest):
     savedCardInfo = ''
     returnString = ''
@@ -94,6 +104,7 @@ def searchCardDialogTree(searchManifest):
         cg.getCardIm(variationCardList[0],0,'normal',config)
         
         pickVar = tk.Tk()
+        pickVar.title("Select Printing, Number of Copies, and Pile")
         pickVar.minsize(width = 500, height = 750)
         pickVar.lift()
         varOptions = ttk.Combobox(pickVar,
@@ -104,6 +115,18 @@ def searchCardDialogTree(searchManifest):
 
         varOptions.current(0)
         varOptions.place(x=20,y=50)
+        copiesLabel = tk.Label(pickVar,text="Number of Copies")
+        copiesLabel.place(x=20,y=0)
+        copiesEntry = tk.ttk.Entry(pickVar,width=10)
+        copiesEntry.place(x=20,y=20)
+        copiesEntry.insert(0,"1")
+        
+        pilesLabel = tk.Label(pickVar,text="Pile Number")
+        pilesLabel.place(x=200,y=0)
+        pilesEntry = tk.ttk.Entry(pickVar,width=10)
+        pilesEntry.place(x=200,y=20)
+        pilesEntry.insert(0,"0")
+        
         initImage = Image.open(variationImList[0])
         #cardImage = ImageTk.PhotoImage(initImage)
         #cardImage = pl.ImageTk.PhotoImage(initImage)
@@ -137,7 +160,11 @@ def searchCardDialogTree(searchManifest):
             this returns the appropriate card image information
             '''
             nonlocal returnString
+            nonlocal copiesEntry
+            nonlocal pilesEntry
             selectedManifest = variationCardList[varOptions.current()]
+            selectedManifest["copies"] = copiesEntry.get()
+            selectedManifest["pileNumber"] = pilesEntry.get()
             returnString = generateListEntry(selectedManifest)
             pickVar.destroy()
             pickVar.quit()
@@ -173,11 +200,11 @@ def editDeck():
     '''
     primary deck editing window
     '''
-    print(cardBackDialogTree())
+    
     global config
     config = df.loadConfig()
     master= tk.Tk()
-    master.minsize(750,700)
+    master.minsize(850,865)
     master.title("Deck Factory: List Editor")
     master.geometry("700x700")
     master.lift()
@@ -190,15 +217,8 @@ def editDeck():
     listWindow = tkst.ScrolledText(master,width = 70, height = 48)
     listWindow.place(x=20,y=40)
     
-    #define button functions here   
-    def addACard():
-        '''
-        this is the next subset, should spawn the Card adding window which will be a seperate function
-        '''
-        nonlocal listWindow
-        listEntry = cardAddDialog()
-        printToListWindow(listEntry)
-        
+    #define button functions here
+
     def printToListWindow(string):
         nonlocal listWindow
         listWindow.insert(tk.END,str(string))
@@ -208,10 +228,10 @@ def editDeck():
         listTitle.insert(0,string)
     def saveDeckList():
         filename = listTitle.get()#selection eliminates the \n
-        targFile = config["deckListPath"]+config["systemSlash"]+cg.percentEncode(filename).replace(" ","_")+".txt"
+        targFile = config["deckListPath"]+config["systemSlash"]+cg.percentEncode(filename).replace(" ","_")+".csv"
         if(targFile in glob.glob(config["deckListPath"]+config["systemSlash"]+'*')):
             os.remove(targFile)
-        with open(config["deckListPath"]+config["systemSlash"]+cg.percentEncode(filename).replace(" ","_")+".txt","w") as file:
+        with open(config["deckListPath"]+config["systemSlash"]+cg.percentEncode(filename).replace(" ","_")+".csv","w") as file:
             file.write(listWindow.get('1.0',tk.END))
         #master.destroy()
     def loadDeckList():
@@ -235,6 +255,33 @@ def editDeck():
                 for i in lines:
                     printToListWindow(i)
                     
+    def searchCard():
+        searchArgs = searchParams.get()
+        searchManifest = cg.searchByParameters(searchArgs)
+        if "code" in searchManifest:
+            #card wasn't found, search was incorrect
+            warning = tk.Tk()
+            warning.title("Warning: No Results")
+            warning.minsize(width = 100, height = 100)
+            warning.lift()
+            warningLabel = tk.Label(warning,text="Your search brought back no results.\n Please check your search parameters")
+            warningLabel.pack()
+            
+            closeButton = tk.Button(warning,text="Close",command = warning.destroy)
+            closeButton.pack()
+            warning.mainloop()
+        else:#we have a search
+            returnString = searchCardDialogTree(searchManifest)
+                #at the end of this process, clean up your messy card options
+            printToListWindow(returnString)
+            searchParams.delete(0,tk.END)
+    def searchCardEntry(event):
+        searchCard()
+    searchParams = tk.Entry(master,width = 30)
+    searchParams.place(x=620,y = 80)
+    searchParams.bind('<Return>',searchCardEntry)
+    
+    
     def importDeckList(targDeck):
         '''
         the purpose of this is to import an xmage deck into the new format,
@@ -314,19 +361,19 @@ def editDeck():
     exitButton = tk.Button(master,text='Exit', command = master.destroy,
                            bg='red',fg='white',
                            width=13,height=2)
-    exitButton.place(x=590,y=650)
-    addCardButton = tk.Button(master,text='Add a Card', command = addACard,
+    exitButton.place(x=620,y=650)
+    addCardButton = tk.Button(master,text='Add a Card', command = searchCard,
                            bg='blue',fg='white',
                            width=13,height=2)
-    addCardButton.place(x=590,y=100)
+    addCardButton.place(x=620,y=100)
     loadListButton = tk.Button(master,text='Load Deck List', command = loadDeckList,
                            bg='blue',fg='white',
                            width=13,height=2)
-    loadListButton.place(x=590,y=150)
+    loadListButton.place(x=620,y=150)
     saveListButton = tk.Button(master,text='Save Deck List', command = saveDeckList,
                            bg='green',fg='white',
                            width=13,height=2)
-    saveListButton.place(x=590,y=200)
+    saveListButton.place(x=620,y=200)
     
     master.mainloop()
 

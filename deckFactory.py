@@ -17,7 +17,7 @@ import sys
 import json
 import shutil
 import logging
-import datetime
+
 from imgurpython import ImgurClient
 
 config = {

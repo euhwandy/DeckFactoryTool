@@ -31,6 +31,7 @@ class Card:
         self.pileNumber = 0
         self.loadedFromJson = False
         self.selectedFace = 0 #front face by default
+        self.deckIndex = 100 #index in the TTS deck file.
         self.cardData = '' #this will be populated by the json profile of the card from Scryfall
         
     def convertToTTSCard(self):
