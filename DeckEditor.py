@@ -276,6 +276,7 @@ def editDeck():
             searchParams.delete(0,tk.END)
     def searchCardEntry(event):
         searchCard()
+    printToListWindow("#Collector # | SET | NAME | # COPIES | PILE # | SCRYFALL URI\n")
     searchParams = tk.Entry(master,width = 30)
     searchParams.place(x=620,y = 80)
     searchParams.bind('<Return>',searchCardEntry)

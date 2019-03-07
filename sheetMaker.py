@@ -451,7 +451,7 @@ def readInFile(listName):
                         cardMat[-1].cn = cNum
                 elif fileType == "CSV":
                     #write in csv data read in.
-                    if '|' in line:
+                    if '|' in line and not line.replace(' ','')[0]=='#':
                         cardMat.append(Card())
                         linesplit = line.split(" | ")
                         cardMat[-1].cn= linesplit[0]
