@@ -107,8 +107,8 @@ class Manifest:
                 if localPile.number == card.pileNumber:
                     localPile.cardInds.append(i)
                     break
-            if cardCount == 70:
-                cardCount = 1
+            if cardCount == 69:
+                cardCount = 0
                 pageIndex += 1
             cardNumber = (pageIndex * 100) + cardCount
             cardCount += 1
