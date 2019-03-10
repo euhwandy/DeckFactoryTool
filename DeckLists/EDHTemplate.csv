@@ -1,0 +1,22 @@
+#Collector # | SET | NAME | # COPIES | PILE # | SCRYFALL URI
+# commander 1 (2 if partners) Recommend pile 1
+24 | MPS | Sol Ring | 1 | 0 | https://api.scryfall.com/cards/880711b0-da06-4c4f-aa4e-1be58fc0bc67
+
+#Engine/Core
+
+#Win Conditions
+
+#Card Draw/Advantage 10
+
+#Utility
+206 | CNS | Vedalken Orrery | 1 | 0 | https://api.scryfall.com/cards/178c71e6-a905-4050-b483-044462c4c1c5
+14 | MPS | Lightning Greaves | 1 | 0 | https://api.scryfall.com/cards/ca483a44-0eaa-4a2c-abef-de1e8f3f3766
+
+#Targeted Removal 5
+
+#Board Wipes 5
+
+#Land 37
+
+
+
