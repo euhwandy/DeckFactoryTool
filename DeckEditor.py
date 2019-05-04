@@ -171,7 +171,7 @@ def searchCardDialogTree(searchManifest):
         selectButton.place(x = 340, y = 40)
         pickVar.mainloop()
         #at the end of this process, clean up your messy card options
-    return returnString
+    return returnString+'\n'
 
 def cardBackDialogTree():
     '''
