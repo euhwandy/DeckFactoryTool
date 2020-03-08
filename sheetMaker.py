@@ -414,6 +414,7 @@ def readInFile(listName):
         fileType = "CSV"
     if not fileType == "Json":
         with open(dList) as file:
+            xmagePileNum = 0
             for line in file:
                 #print(line)
                 #sys.stdout.flush()
@@ -430,6 +431,7 @@ def readInFile(listName):
                         setN = re.search('\[(\S)*\:',targReg).group()
                         setN = setN[1:-1]
                          #Xmage silliness corrected here to some extent (DARN YOU PROMOS)
+                        doubleFacedSets = ['rix','soi','dka','xln','isd','emn','ori','m19']
                         if setN.lower() == 'gur':  #guru lands
                             setN = 'pgru'
                         elif setN.lower() == 'dd3dvd': #duel decks: divine vs demonic
@@ -444,11 +446,22 @@ def readInFile(listName):
                             setN = 'pgpx'
                         else:
                             setN = setN.lower()
+                        
                         cardMat[-1].setCode = setN
                         cNum = re.search('\:(\S)*\]',line).group()[1:-1]
+                        if cNum[-1] in cg.alphabet and setN in doubleFacedSets:#this eliminates front/back faces issues?
+                            cNum = cNum[:-1]
+                        
+                        copies = line.split(' ')[0]
+                        if copies == 'SB:':
+                            copies = line.split(' ')[1]
+                            xmagePileNum = 1
+                        
                         cName = re.search('\]((\s)*(\S)*)*',line).group()[1:-1]
                         cardMat[-1].cardName = cName
                         cardMat[-1].cn = cNum
+                        cardMat[-1].copies= int(copies)
+                        cardMat[-1].pileNumber = xmagePileNum
                 elif fileType == "CSV":
                     #write in csv data read in.
                     if '|' in line and not line.replace(' ','')[0]=='#':
