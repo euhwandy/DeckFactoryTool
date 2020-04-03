@@ -114,7 +114,7 @@ def imgurAuthProcess():
     textbits.place(x=20,y=80)
     pinEnter = tk.ttk.Entry(master = authWindow,width=50)
     pinEnter.place(x=20,y=220)
-    urlOut = tk.Text(master=authWindow,  height = 1, borderwidth=0)
+    urlOut = tk.Text(master=authWindow,  height = 1, width= 85,borderwidth=0)
     urlOut.insert(1.0,authorization_url)
     urlOut.place(x=20,y=200)
     urlOut.configure(state="disabled")
