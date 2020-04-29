@@ -63,7 +63,7 @@ class pile:
         for i in deckManifest.printSheetUrls:
             pageCount += 1
             deckInfo["CustomDeck"][str(pageCount)] = {'FaceURL':i, 'BackURL':deckManifest.cardBackUrl,
-                                       'NumWidth':10, 'NumHeight':7,
+                                       'NumWidth':5, 'NumHeight':3,
                                        'BackIsHidden':'false', 'UniqueBack':'false'}
         deckInfo["Transform"] = {'posX':4*self.number, 'posY':1, 'posZ':0, 'rotX':0,
                                     'rotY':180, 'rotZ':180, 'scaleX':1, 'scaleY':1,
@@ -107,7 +107,7 @@ class Manifest:
                 if localPile.number == card.pileNumber:
                     localPile.cardInds.append(i)
                     break
-            if cardCount == 69:
+            if cardCount == 14:
                 cardCount = 0
                 pageIndex += 1
             cardNumber = (pageIndex * 100) + cardCount
@@ -115,7 +115,7 @@ class Manifest:
             card.deckIndex = cardNumber
         
         for card in self.extras:
-            if cardCount == 69:#CBTT 
+            if cardCount == 14:#CBTT 
                 cardCount = 0
                 pageIndex += 1
             cardNumber = (pageIndex * 100) + cardCount
@@ -175,7 +175,7 @@ class Manifest:
             for j in range(tokEndPage-tokStartPage+1):
                 extrasDeckInfo["CustomDeck"][str(j+tokStartPage)] = {'FaceURL':self.printSheetUrls[tokStartPage+j-1],
                                                                       'BackURL':self.cardBackUrl,
-                                                                      'NumWidth':10, 'NumHeight':7,
+                                                                      'NumWidth':5, 'NumHeight':3,
                                                                       'BackIsHidden':'false', 'UniqueBack':'false'}
             TTSDict["ObjectStates"].append(extrasDeckInfo)
         return TTSDict 
@@ -554,8 +554,8 @@ def buildSheet(listName,buildPrintFunctor):
     buildPrint(stripName(dList)+" Read into initial state")
     buildManifest(cardMat,deckManifest,deckFileType)
     numCards = deckManifest.cardCount
-    if numCards > 69:
-        numSheets = int(np.floor(numCards/69)+1)
+    if numCards > 14:
+        numSheets = int(np.floor(numCards/14)+1)
     else:
         numSheets = int(1)
     count = 1
@@ -636,14 +636,14 @@ def buildSheet(listName,buildPrintFunctor):
         #size = 409,570
         if( np.size(deckManifest.printList) == deckManifest.cardCount):
             while ci < np.size(deckManifest.printList):
-                    lci = np.mod(ci,69) #local card iterator
+                    lci = np.mod(ci,14) #local card iterator
                     cardim=PIL.Image.open(deckManifest.printList[ci])
-                    size = 332, 462#471 #this took some tinkering to get Scryfall's to work.
+                    size = 672, 936#471 #this took some tinkering to get Scryfall's to work.
                     
-                    cardim.thumbnail(size,PIL.Image.ANTIALIAS)
+                    #cardim.thumbnail(size,PIL.Image.ANTIALIAS)
                     #to determine the location of pasting.
-                    coordx =332*np.mod(lci,10)
-                    coordy =462*int(lci/10)
+                    coordx =672*np.mod(lci,5)
+                    coordy =936*int(lci/5)
                     #coordx =410*np.mod(lci,10)
                     #coordy =570*int(lci/10)
                     #box size is 332 , 462
@@ -658,7 +658,7 @@ def buildSheet(listName,buildPrintFunctor):
                         buildPrint('Sheet '+str(currentSheet)+' of '+str(numSheets)+' complete')
                         buildPrint('Print Sheets for '+str(dispName)+' complete.')
                         break
-                    elif lci == 68:
+                    elif lci == 13:
                         #temp.resize(sheetSize,PIL.Image.LANCZOS)
                         saveSheet(temp, dispName,currentSheet)
                         deckManifest.printSheetPaths.append(config["printSheetsPath"]+config["systemSlash"]+dispName+str(currentSheet)+'.jpg')
