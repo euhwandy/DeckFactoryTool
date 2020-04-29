@@ -115,8 +115,8 @@ class Manifest:
             card.deckIndex = cardNumber
         
         for card in self.extras:
-            if cardCount == 70:
-                cardCount = 1
+            if cardCount == 69:#CBTT 
+                cardCount = 0
                 pageIndex += 1
             cardNumber = (pageIndex * 100) + cardCount
             cardCount += 1
@@ -322,6 +322,7 @@ def buildManifest(cardMat,deckManifest,deckFileType):
                             deckManifest.extras[-1].selectedFace = 1 #one is the default for the back face
                             logger.debug("Card back face added to manifest")
                             #deckManifest.cardCount = deckManifest.cardCount +1
+                            print(deckManifest.extras[-1])
             else: #CSV FORMAT
                 deckManifest.cardCount += 1
                 deckManifest.cards.append(cg.Card())
