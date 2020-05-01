@@ -265,7 +265,7 @@ def main():
     saveConfig()
     master = tk.Tk()
     master.minsize(800,700)
-    master.title("Deck Factory 2.7")
+    master.title("Deck Factory 2.8")
     master.geometry("800x700")
     master.lift()
     deckListPaths = []
