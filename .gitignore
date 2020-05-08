@@ -2,7 +2,6 @@
 __pycache__
 PrintSheets
 DeckLists/*
-DeckLists/!*Template.txt
-DeckLists/!*Tutorial.txt
+CardDump/*
 **/config.json
 config.json
