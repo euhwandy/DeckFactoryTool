@@ -19,6 +19,10 @@ import logging
 from imgurpython import ImgurClient
 
 config = {}#dictionary set by buildSheets via argument passed in from driver
+def specialCharacterFilter(string):
+    #string = string.replace(u'\u00FB','u')
+    string = string.replace(u'\u00C3\u00BB','u') #corrupted û replacement
+    return string
 def buildPrint(string):
     '''
     this is a default printing function, however this should be overloaded by a 
@@ -256,7 +260,7 @@ def buildManifest(cardMat,deckManifest,deckFileType):
                         deckManifest.failedCards.append(i)
                         deckManifest.printable = False
                         logger.debug("Supplied CN: " + i.cn + "Setcode: " + i.setCode + " not found" )
-                elif not i.cardName == '':
+                elif not i.cardName == '' and not i.setCode == '':
                     try:
                         i.cardData = cg.searchCardByName(i.cardName,i.setCode)
                     except:
@@ -417,6 +421,10 @@ def readInFile(listName):
         with open(dList) as file:
             xmagePileNum = 0
             for line in file:
+                
+                if fileType == 'txt' and line.split(' ')[0][-1]=='x':
+                    fileType = 'archidekt'
+                
                 #print(line)
                 #sys.stdout.flush()
                 logger.debug("parsing line: " + line)
@@ -463,6 +471,7 @@ def readInFile(listName):
                         cardMat[-1].cn = cNum
                         cardMat[-1].copies= int(copies)
                         cardMat[-1].pileNumber = xmagePileNum
+                        
                 elif fileType == "CSV":
                     #write in csv data read in.
                     if '|' in line and not line.replace(' ','')[0]=='#':
@@ -474,6 +483,47 @@ def readInFile(listName):
                         cardMat[-1].copies = int(linesplit[3])
                         cardMat[-1].pileNumber = int(linesplit[4])
                         cardMat[-1].cardData = cg.getCardManifest(linesplit[5])
+
+                elif fileType == 'archidekt':
+                    cardMat.append(Card())
+                    linesplit = line.split(' ')
+                    linesplit[-1] = linesplit[-1].replace('\n','')
+                    cardMat[-1].copies = int(linesplit[0][:-1])
+                    #find the setcode:
+                    for i in range(len(linesplit)): #search from the back to reduce iterations
+                        term = linesplit[i]#search forwards
+                        if term[0] == '(' and term[-1]==')':
+                            cardMat[-1].setCode = term[1:-1]
+                            #we need to check if other terms follow the set code
+                            if i < len(linesplit)-1:
+                                #we have other terms
+                                try:
+                                    #the term after the set code is possibly the card number in the set
+                                    cardNum = int(linesplit[i+1])
+                                    #if it hasn't choked and died, then we have a card number in the set
+                                    cardMat[-1].cn = linesplit[i+1]
+                                except ValueError:
+                                    #it wasn't a number
+                                    pass
+                                
+                            break
+                    #we now have the brackets on the name's location in the string
+                    nameTerms = linesplit[1:i]
+                    
+                    cardName = ''
+                    for term in nameTerms:
+                        term = specialCharacterFilter(term)
+                        cardName = cardName + term + ' '
+                    cardMat[-1].cardName = cardName[:-1]#gets rid of the last space
+                    #checking which pile the card belongs in
+                    if '`Commander`' in linesplit or '`Sideboard`' in linesplit:
+                        cardMat[-1].pileNumber = 1
+                    elif '`Maybeboard`' in linesplit:
+                        cardMat[-1].pileNumber = 2
+                    else:
+                        cardMat[-1].pileNumber = 0
+                    
+                    
                 else:#text file type
                     #filter out comments and empty lines
                     if not (line[0] == '#' or line.replace(" ","")=='\n'):

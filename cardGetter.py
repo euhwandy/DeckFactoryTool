@@ -54,6 +54,22 @@ class Card:
         cardDict["Transform"] = {"posX":0,"posY":0,"posZ":0,"rotX":0,"rotY":180,"rotZ":180,"scaleX":1,"scaleY":1,"scaleZ":1}
         
         return cardDict
+    
+    def debugPrint(self):
+        print("____________________________")
+        print("cardName:",self.cardName)
+        print("cn:",self.cn)
+        print('setCode:',self.setCode)
+        print('ambiguous:',self.ambiguous)
+        print('notFindable:',self.notFindable)
+        print('copies:',self.copies)
+        print('pileNumber:',self.pileNumber)
+        print('loadedFromJson:',self.loadedFromJson)
+        print('selectedFace:',self.selectedFace)
+        print('deckIndex:',self.deckIndex)
+        print('cardData:',self.cardData)
+        print("____________________________")
+        print()
 
 def copyCard(cardFrom,cardTo):
     '''
